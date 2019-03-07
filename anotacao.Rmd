@@ -1,0 +1,94 @@
+---
+title: "title"
+author: "Pedro Henrique Oliveira de Souza"
+date: "7 de março de 2019"
+output:
+  html_document:
+    df_print: paged
+  pdf_document:
+    highlight: tango
+    latex_engine: lualatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(quantmod)
+load("dados14")
+```
+
+## Capítulo 14
+
+O capítulo introduz dados de série temporal e correlação temporal. Começa apresentando gráficos com a inflação dos EUA.
+
+A observação da variável $Y$ no momento $t$ se mostra como $Y_t$. O total de observações é $T$. O espaço entre $t$ e $t+1$ é um intervalo abstrato qualquer.
+
+* A variação entre os períodos $Y_t$ e $Y_{t-1}$ é chamada de **primeira diferença**. Ou seja:
+
+$$\Delta Y_t=Y_t - Y_{t-1}$$
+
+É recomendado tomar o $log$ das séries temporais. Algumas séries apresentam crescimento aproxidamente exponencial, sendo recomendado por isso. Além disso, desvios padrões de mudas séries temporais econômicas é aproximadamente proporcional ao seu nível, isto é, o desvio padrão pode ser expresso corretamente uma porcentagem do nível das séries. Então o desvio padrão do logaritmo das séries é aproximadamente constante.
+
+O primeiro capítulo considera a inflação e a taxa de desemprego. Seguem os gráficos de ambos.
+```{r}
+# reproduce Figure 14.1 (b) of the book
+plot(as.zoo(UNEMP),
+     col = "steelblue",
+     lwd = 2,
+     ylab = "Logarithm",
+     xlab = "Date",
+     main = "U.S. Unemployment Rate",
+     ylim = c(0,max(UNEMP))) ### Limites
+
+
+plot(as.zoo(INF.Taxa),
+     col = "red",
+     lwd = 2,
+     ylab = "Logarithm",
+     xlab = "Date",
+     main = "U.S. Inflation Rate")
+```
+
+
+A taxa anual de inflação é dada por:
+
+$$ INF_t \approx 400[ln(INF_t) - ln(INF_{t-1})] $$
+
+Usando esses valores, temos de 2004 para 2005:
+
+```{r}
+quants(INF["2004::2005-01"])
+```
+
+### Autocorrelação
+
+A j-ésima autocovariância de uma série $Y_t$ é a covariância entre Y_t e sua j=érsima defasagem (lag), ou seja: 
+
+$$cov(Y_t,Y_{t-j})$$
+$$\rho_j = corr(Y_t,Y_{t-j}) = \frac{cov(Y_t,Y_{t-j})}{\sqrt{var(Y_t) var(Y_{t-j}) }}$$
+
+Fazendo os testes de autocorrelação usando a função **afc()**, chegamos aos seguintes resultados:
+* Para a taxa de inflação, temos:
+```{r}
+acf(na.omit(INF.Taxa), lag.max = 10, plot = F)
+```
+* Para o desemprego, temos:
+```{r}
+acf(na.omit(UNEMP.Taxa), lag.max = 10, plot = F)
+```
+
+O que mostra que o desemprego passado tem influência no futuro.
+
+Se a autocorrelação fosse negativa, o resultado implicaria que um resultado positivo um período antes impactaria negativamente no futuro.
+
+---
+## 14.3 Modelos autorregressivos
+
+### Modelo autorregressivo de primeira ordem
+
+Se o objetivo é prever o futuro, nada melhor para isso que o período imediatamente anterior. Sendo assim, se o objetivo for ver a inflação do próximo semestre
+
+
+
+
+
