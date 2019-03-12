@@ -5,9 +5,6 @@ date: "7 de março de 2019"
 output:
   html_document:
     df_print: paged
-  pdf_document:
-    highlight: tango
-    latex_engine: lualatex
 ---
 
 ```{r setup, include=FALSE}
@@ -86,9 +83,68 @@ Se a autocorrelação fosse negativa, o resultado implicaria que um resultado po
 
 ### Modelo autorregressivo de primeira ordem
 
-Se o objetivo é prever o futuro, nada melhor para isso que o período imediatamente anterior. Sendo assim, se o objetivo for ver a inflação do próximo semestre
+Se o objetivo é prever o futuro, nada melhor para isso que o período imediatamente anterior. Sendo assim, se o objetivo for ver a variação da inflação deste trimestre para o próximo, pode ver se a inflação aumentou ou diminuiu no trimestre passado.
 
+Uma forma de testar isso, seria rodando um MQO de $\Delta INF_t$ sobre $\Delta INF_{t-1}$.
 
+$$\Delta INF_t = \beta_0 + \beta_1 \Delta INF_{t-1} + u_t$$
+Essa equação acima é chamada de autorregressão de primeira ordem. Uma regressão de uma série sobre sua própria defasagem. Para isso, usamos a função **ar.ols**.
 
+```{r}
+INF.TAXA.ols.1 <- ar.ols(INF.Taxa["1962::2006"],
+       order.max = 1,
+       demean = F,
+       intercept = T)
+INF.TAXA.ols.1
+```
 
+Na equação acima, usamos dados de inflão de 1962 até 2006. O modelo contém uma defasagem (*order.max =1*),
+o modelo vai regredir menos a defasagem, não sua média (*demean = F*) e contérá o intercepto (*intercept = T*).
+
+### Erros de previsão
+
+Em geral, $\hat{Y}_{t|t-1}$ representará a previsão de $Y_t$ baseada em informações até o período $t-1$. Assim, o modelo $AR(1)$ é:
+
+$$ \hat{Y}_{t|t-1} = \hat{\beta_0} + \hat{\beta_1} Y_{t-1}$$
+
+O **erro de previsão** é o erro cometido pela previsão. Ou seja, é a diferença entre o valor $Y_t$ que ocorreu e o valor previsto em $Y_{t-1}$.
+
+$$ erro \space de \space previsão = Y_{t}-\hat{Y}_{t|t-1} $$
+
+### Previsão vs valores previstos
+
+A previsão não é um valor previsto de MQO, e o erro de previsão não é um resíduo de MQO.
+* Valores previstos de MQO são calculados para as observações **"de dentro" da amostra** utilizada.
+* Previsão é feita para dados **"de fora"" da amostra**, é feita para alguma data além da data base de dadis utilizada.
+
+#### Raiz do erro de previsão quadrático médio ( root mean squared forecast error - RMSFE)
+
+É uma medida do tamanho do erro de previsão, isto é, da magnitude de um erro típico cometido utilizando um modelo de previsão.
+
+$$RMSFE = \sqrt{E\left[\left(Y_{T+1} - \widehat{Y}_{T+1\vert T}\right)^2\right]}$$
+
+#### Aplicação à inflação
+
+Qual a previsão de inflação que para o primeiro trimestre de 2000 que um analista teria feito em 1999 usando o modelo AR(1) mostrado acima? Os dados acima mostram que:
+
+$\Delta INF_t =$ `r INF.TAXA.ols.1$x.intercept`
+$+$
+`r INF.TAXA.ols.1$asy.se.coef$ar`
+$\Delta INF_{t-1}$
+
+A função **forecast()** provê ferramentas paras fazer previsões.
+
+A função realiza previsões em um tempo, de acordo com o modelo autorregressivo utilizado.
+
+* **INF.Taxa.Forecast <- forecast(ar.ols(INF.Taxa["1962::2009"],order.max = 1, demean = F, intercept = T))**
+```{r}
+INF.Taxa.Forecast <- forecast(ar.ols(INF.Taxa["1962::2009"],order.max = 1, demean = F, intercept = T))
+summary(INF.Taxa.Forecast)
+```
+
+## 14.5 Você pode prever o mercado?
+
+A teoria da hipótese dos mercados eficientes diz que os preços dos ativos já incorporam todas as informações públicas disponíveis. Sendo assim, a teoria diz que não é possível estimar um modelo prevendo o retorno de um ativo usando toda a informação pública do passado. Ou seja, se é possível é possível prever, é possível arbitrar. Se for possível arbitrar, logo o peço se ajusta e o retorno esperado é zero.
+
+Este tópico testa isso.
 
